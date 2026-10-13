@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Test and Build Docker Image
 
 on:
   push:
@@ -7,6 +7,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run tests
+        run: pytest
+        continue-on-error: true # Временно позволяет продолжить, даже если тесты еще не написаны
+
   build:
     needs: test
     if: ${{ needs.test.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
